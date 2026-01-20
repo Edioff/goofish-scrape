@@ -80,4 +80,4 @@ Donde:
 Usa NetNut datacenter proxy. La sesion se mantiene con el sufijo `-sid-XXXXXX` en el username para conservar la misma IP.
 
 ---
-Edison - Prueba tecnica Iceberg Data
+Johan Andres Cruz Forero - Prueba tecnica Iceberg Data
