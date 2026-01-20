@@ -17,6 +17,8 @@ Microservicio para extraccion de datos de productos del marketplace Goofish (闲
 ```bash
 pip install -r requirements.txt
 playwright install chromium
+cp .env.example .env
+# Editar .env con las credenciales del proxy
 ```
 
 ## Uso
@@ -77,7 +79,14 @@ Donde:
 
 ## Proxy
 
-Usa NetNut datacenter proxy. La sesion se mantiene con el sufijo `-sid-XXXXXX` en el username para conservar la misma IP.
+Configurar en `.env`:
+```
+PROXY_USER=tu-usuario
+PROXY_PASS=tu-password
+PROXY_HOST=host:puerto
+```
+
+La sesion se mantiene con el sufijo `-sid-XXXXXX` en el username para conservar la misma IP.
 
 ---
 Johan Andres Cruz Forero - Prueba tecnica Iceberg Data
