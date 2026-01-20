@@ -7,7 +7,7 @@ from scraping import scrape_pdp
 # =================================================================
 # FAST API CONFIGURATION
 # =================================================================
-YOUR_NAME = "Edison"
+YOUR_NAME = "JohanCruz"
 
 def custom_openapi():
     if app.openapi_schema:
