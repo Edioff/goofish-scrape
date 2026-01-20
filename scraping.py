@@ -18,9 +18,9 @@ API_URL = "https://h5api.m.goofish.com/h5/mtop.taobao.idle.pc.detail/1.0/"
 APP_KEY = "34839810"
 JSV = "2.7.2"
 
-PROXY_USER = os.getenv("PROXY_USER", "codify-dc-any")
-PROXY_PASS = os.getenv("PROXY_PASS", "58ADAB79s03h8TJ")
-PROXY_HOST = os.getenv("PROXY_HOST", "gw.netnut.net:5959")
+PROXY_USER = os.getenv("PROXY_USER", "")
+PROXY_PASS = os.getenv("PROXY_PASS", "")
+PROXY_HOST = os.getenv("PROXY_HOST", "")
 
 scraped_urls: set[str] = set()
 _cookies: dict[str, str] = {}
@@ -94,7 +94,7 @@ async def init_session() -> None:
 
     playwright = await async_playwright().start()
     browser = await playwright.chromium.launch(
-        headless=False,
+        headless=True,
         proxy={
             "server": f"http://{PROXY_HOST}",
             "username": username,
