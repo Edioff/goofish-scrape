@@ -3,3 +3,4 @@ uvicorn
 curl_cffi
 playwright
 python-dotenv
+slowapi
