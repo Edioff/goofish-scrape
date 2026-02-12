@@ -1,114 +1,127 @@
-# Goofish Scraping API
+# Goofish Scraper — Alibaba Anti-Bot Bypass
 
-**Prueba Tecnica - Backend Engineer @ Iceberg Data**
-**Candidato:** Johan Andres Cruz Forero
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
+![curl_cffi](https://img.shields.io/badge/curl__cffi-TLS%20Impersonation-00599C?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
----
+> Scraped **18,000+ products** from Alibaba's Goofish platform by cracking the MTOP SDK cookie signing mechanism. Hybrid Playwright + curl_cffi approach achieving **5-10 products/second**.
 
-## Resultados
+## Overview
 
-| Metrica | Valor |
-|---------|-------|
-| Productos scrapeados | **18,000+** |
-| Tasa de exito | ~85% |
-| Velocidad promedio | 5-10 productos/segundo |
-| Campos extraidos | 11/11 (100%) |
+Goofish (Xianyu) is Alibaba's second-hand marketplace, protected by the MTOP SDK — Alibaba's proprietary anti-bot system that generates dynamic cookies via JavaScript, requires cryptographic request signing, and detects HTTP clients through TLS fingerprinting.
 
----
+This scraper bypasses all three layers using a hybrid approach: Playwright captures authentication cookies once per session, then `curl_cffi` with Chrome TLS impersonation handles all subsequent API requests at high speed.
 
-## Solucion Implementada
+## Results
 
-### El Problema
+| Metric | Value |
+|--------|-------|
+| Products scraped | **18,000+** |
+| Success rate | **~85%** |
+| Speed | **5-10 products/second** |
+| Data fields extracted | **11/11 (100%)** |
 
-Goofish (闲鱼) utiliza el SDK MTOP de Alibaba que:
-- Genera cookies dinamicas via JavaScript
-- Requiere firma digital (`sign`) en cada request
-- Detecta y bloquea clientes HTTP por fingerprinting TLS
-
-### Mi Solucion: Enfoque Hibrido
+## How the Bypass Works
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
 │   Playwright    │────>│  Cookies + Token │────>│   curl_cffi     │
-│  (1 vez/sesion) │     │   _m_h5_tk       │     │ (requests API)  │
+│  (1x per session)│    │   _m_h5_tk       │     │ (all requests)  │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
 ```
 
-1. **Playwright** abre el navegador UNA vez para capturar cookies de autenticacion
-2. **curl_cffi** con `impersonate="chrome124"` replica el fingerprint TLS de Chrome
-3. Requests directos a la API interna: `h5api.m.goofish.com/h5/mtop.taobao.idle.pc.detail`
-
-### Calculo del Sign
+### Cookie Signing (MTOP SDK)
 
 ```python
 sign = MD5(token + "&" + timestamp + "&" + appKey + "&" + data)
 ```
 
-Donde:
-- `token`: primera parte de cookie `_m_h5_tk` (antes del `_`)
-- `timestamp`: milisegundos actuales
-- `appKey`: `34839810` (constante de Goofish)
-- `data`: `{"itemId":"XXXXX"}`
+Where:
+- `token` — First part of `_m_h5_tk` cookie (before `_`)
+- `timestamp` — Current time in milliseconds
+- `appKey` — `34839810` (Goofish constant)
+- `data` — Request payload as JSON string
 
-### Optimizaciones
+### Why This Architecture?
 
-- **Cache de URLs scrapeadas**: evita requests duplicados
-- **Multiprocessing**: 3 workers paralelos
-- **Concurrencia**: 30 requests simultaneos por worker
-- **Rotacion de sesion**: detecta bloqueos y rota IP/cookies automaticamente
-- **Manejo de errores**: no reintenta productos eliminados (404)
+| Approach | Speed | Why (not) |
+|----------|-------|-----------|
+| Playwright for everything | ~0.5 products/sec | Too slow for scale |
+| curl_cffi without auth | 0% success | Missing required cookies |
+| **Hybrid (this project)** | **5-10/sec** | Best of both worlds |
 
----
+## Features
 
-## Estructura del Proyecto
+- **MTOP SDK bypass** — Cracked cookie signing mechanism
+- **TLS impersonation** — `curl_cffi` with Chrome 124 fingerprint
+- **Multiprocessing** — 3 parallel workers with independent proxy sessions
+- **Concurrency** — 30 simultaneous requests per worker
+- **Auto session rotation** — Detects blocks and rotates IP/cookies
+- **FastAPI endpoint** — REST API for individual product scraping
+- **Docker ready** — Full containerized deployment
 
-```
-├── main.py              # FastAPI - endpoint /scrapePDP
-├── scraping.py          # Logica de scraping + multiprocessing
-├── requirements.txt     # Dependencias
-├── Dockerfile           # Imagen Docker
-├── docker-compose.yml   # Orquestacion
-├── .env.example         # Template de configuracion
-└── README.md
-```
+## Data Points
 
----
+| Field | Description | Example |
+|-------|-------------|---------|
+| ITEM_ID | Unique product ID | `864893386498` |
+| CATEGORY_ID | Category | `50025969` |
+| TITLE | Product title | `iPhone 14 Pro Max 256GB` |
+| IMAGES | Image URLs (JSON array) | `["https://...jpg"]` |
+| SOLD_PRICE | Price in CNY | `5999` |
+| BROWSE_COUNT | Views | `1234` |
+| WANT_COUNT | "I want it" count | `56` |
+| COLLECT_COUNT | Favorites | `23` |
+| QUANTITY | Available stock | `1` |
+| GMT_CREATE | Publication date | `2024-01-15T10:30:00` |
+| SELLER_ID | Seller ID | `2208574658321` |
 
-## Instalacion y Uso
+## Tech Stack
 
-### Requisitos
-- Python 3.10+
-- Credenciales de proxy NetNut
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=flat-square&logo=playwright&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 
-### Setup
+- **curl_cffi** — Chrome TLS fingerprint impersonation
+- **Playwright** — One-time cookie capture
+- **FastAPI** — REST API wrapper
+- **Docker** — Containerized deployment
+- **Multiprocessing** — Parallel workers with proxy isolation
+
+## Installation
 
 ```bash
-# Clonar e instalar
-git clone <repo>
-cd goofish-scraper
+git clone https://github.com/Edioff/goofish-scrape.git
+cd goofish-scrape
 pip install -r requirements.txt
 playwright install chromium
-
-# Configurar proxy
-cp .env.example .env
-# Editar .env con credenciales
 ```
 
-### Ejecutar API (endpoint individual)
+### Configuration
+
+```bash
+cp .env.example .env
+# Edit .env with your proxy credentials
+```
+
+## Usage
+
+### API (single product)
 
 ```bash
 uvicorn main:app --host 0.0.0.0 --port 8080
+# GET http://localhost:8080/scrapePDP?url=https://www.goofish.com/item?id=123456
 ```
 
-Luego visitar: `http://localhost:8080/scrapePDP?url=https://www.goofish.com/item?id=123456`
-
-### Ejecutar Scraping Masivo
+### Bulk scraping
 
 ```bash
 python scraping.py
+# Outputs: goofish_results.csv
 ```
-
-Genera `goofish_results.csv` con los datos extraidos.
 
 ### Docker
 
@@ -116,50 +129,18 @@ Genera `goofish_results.csv` con los datos extraidos.
 docker-compose up --build
 ```
 
----
+## Notes
 
-## Datapoints Extraidos
+- Requires residential proxy credentials (NetNut or similar)
+- For educational and research purposes
+- Respect the platform's Terms of Service
 
-| Campo | Descripcion | Ejemplo |
-|-------|-------------|---------|
-| ITEM_ID | ID unico del producto | `864893386498` |
-| CATEGORY_ID | Categoria | `50025969` |
-| TITLE | Titulo del producto | `iPhone 14 Pro Max 256GB` |
-| IMAGES | URLs de imagenes (JSON array) | `["https://...jpg"]` |
-| SOLD_PRICE | Precio en CNY | `5999` |
-| BROWSE_COUNT | Visualizaciones | `1234` |
-| WANT_COUNT | "Lo quiero" | `56` |
-| COLLECT_COUNT | Favoritos | `23` |
-| QUANTITY | Stock disponible | `1` |
-| GMT_CREATE | Fecha publicacion (ISO) | `2024-01-15T10:30:00` |
-| SELLER_ID | ID del vendedor | `2208574658321` |
+## Author
 
----
+**Johan Cruz** — Data Engineer & Web Scraping Specialist
+- GitHub: [@Edioff](https://github.com/Edioff)
+- Available for freelance projects
 
-## Configuracion del Proxy
+## License
 
-```env
-PROXY_USER=tu-usuario
-PROXY_PASS=tu-password
-PROXY_HOST=gw.netnut.net:5959
-```
-
-La sesion se mantiene agregando `-sid-XXXXXX` al username para conservar la misma IP entre requests.
-
----
-
-## Decisiones Tecnicas
-
-### Por que curl_cffi en lugar de requests/httpx?
-Goofish detecta el fingerprint TLS. `curl_cffi` puede imitar exactamente el fingerprint de Chrome, evitando bloqueos.
-
-### Por que Playwright solo para cookies?
-Usar Playwright para cada request seria lento (~2s/producto). Capturando cookies una vez y usando curl_cffi para requests, logramos ~10 productos/segundo.
-
-### Por que multiprocessing en lugar de asyncio puro?
-Cada worker necesita su propia sesion de proxy (IP diferente). Multiprocessing aisla completamente cada worker, evitando conflictos de estado global.
-
----
-
-Johan Andres Cruz Forero
-Enero 2025
+MIT
