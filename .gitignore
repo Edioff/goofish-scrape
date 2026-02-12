@@ -5,3 +5,24 @@ output/
 *.log
 *.csv
 *.pdf
+# Data output
+*.csv
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Environment
+.env
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
